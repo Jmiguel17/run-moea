@@ -79,8 +79,8 @@ class BorgWrapper(BaseOptimisationWrapper):
                     variablesbounds.append(tem)
 
         return variablesbounds
-
-
+    
+    
     def evaluate(self, solution):
         logger.info('Evaluating solution ...')
 

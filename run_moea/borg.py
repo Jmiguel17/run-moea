@@ -390,7 +390,7 @@ class Borg:
         Configuration.libborg.BORG_Problem_set_bounds(self.reference, index, c_double(lowerBound), c_double(upperBound))
 
     def solveMPI(self, islands=1, maxTime=None, maxEvaluations=None, initialization=None, runtime=None,
-            allEvaluations=None, frequency=None):
+            allEvaluations=None):
         """ Runs the master-slave or multi-master Borg MOEA using MPI.
 
         islands        - The number of islands
@@ -429,15 +429,15 @@ class Borg:
             Configuration.libborg.BORG_Algorithm_ms_max_evaluations(c_int(maxEvaluations))
 
         if initialization and islands > 1:
-            Configuration.libborg.BORG_Algorithm_ms_initialization(c_int(initialization));
+            Configuration.libborg.BORG_Algorithm_ms_initialization(c_int(initialization))
 
         if runtime:
-            Configuration.libborg.BORG_Algorithm_output_runtime(c_wchar_p(runtime));
+            Configuration.libborg.BORG_Algorithm_output_runtime(c_wchar_p(runtime))
 
         if allEvaluations:
-            Configuration.libborg.BORG_Algorithm_output_evaluations(c_wchar_p(allEvaluations));
+            Configuration.libborg.BORG_Algorithm_output_evaluations(c_wchar_p(allEvaluations))
 
-        result = Configuration.libborg.BORG_Algorithm_ms_run(self.reference)
+        result = c_void_p(Configuration.libborg.BORG_Algorithm_ms_run(self.reference))
 
         return Result(result, self) if result else None
 
@@ -454,7 +454,7 @@ class Borg:
             raise RuntimeError("Epsilons must be set")
 
         maxEvaluations = settings.get("maxEvaluations", 10000)
-        start = time.perf_counter() #time.clock()
+        start = time.process_time()
 
         pm = c_void_p(Configuration.libborg.BORG_Operator_create("PM", 1, 1, 2, Configuration.libborg.BORG_Operator_PM))
         Configuration.libborg.BORG_Operator_set_parameter(pm, 0, c_double(settings.get("pm.rate", 1.0 / self.numberOfVariables)))
@@ -542,7 +542,7 @@ class Borg:
             if statistics is not None and currentEvaluations-lastSnapshot >= frequency:
                 entry = {}
                 entry["NFE"] = currentEvaluations
-                entry["ElapsedTime"] = time.perf_counter() - start
+                entry["ElapsedTime"] = time.process_time() - start
                 entry["SBX"] = Configuration.libborg.BORG_Operator_get_probability(sbx)
                 entry["DE"] = Configuration.libborg.BORG_Operator_get_probability(de)
                 entry["PCX"] = Configuration.libborg.BORG_Operator_get_probability(pcx)
@@ -659,9 +659,9 @@ class Solution:
         """ Returns the constraint value at the given index. """
         return Configuration.libborg.BORG_Solution_get_constraint(self.reference, index)
 
-    def display(self, separator=" "):
+    def display(self, out=sys.stdout, separator=" "):
         """ Prints the decision variables, objectives, and constraints to standard output. """
-        print(separator.join(map(str, self.getVariables() + self.getObjectives() + self.getConstraints())))
+        print(separator.join(map(str, self.getVariables() + self.getObjectives() + self.getConstraints())), file=out)
 
     def violatesConstraints(self):
         """ Returns True if this solution violates one or more constraints; False otherwise. """
