@@ -25,4 +25,4 @@ classifiers = [
 "Bug Tracker" = "https://github.com/pypa/sampleproject/issues"
 
 [tool.setuptools.package-data]
-"run-moea" = ["json/*.json"]
+"run_moea" = ["json/*.json"]
